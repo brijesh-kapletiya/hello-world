@@ -1,0 +1,159 @@
+{% extends "ARIMemberBundle:Default:base.html.twig" %}
+
+{% block content %}
+<div class="wh_wrap" xmlns="http://www.w3.org/1999/html">
+    <div class="wh_top"></div>
+    <div class="wh_middle">
+        <div class="member_console_wrap">
+            {% set dashboard = true %}
+
+            {% if mfa_notification is not defined or not mfa_notification %}
+                {% include "ARIMemberBundle:Common:navigation.html.twig" %}
+            {% endif %}
+
+            {% if app.user.field('phone') == '' and is_granted('ROLE_ARI_MEMBER_EDIT_ACCOUNT') %}
+                <div class="clear"></div>
+                <div class="alert alert-danger">
+                    Please take a moment and update your <a href="{{ path('member_my_account') }}">contact information</a> with us!
+                </div>
+            {% endif %}
+
+            {% if (terms_form is defined and terms_form) or (password_notification is defined and password_notification) or (mfa_notification is defined and mfa_notification) %}
+                {% set welcomewrap = 'welcomewrap2' %}
+            {% else %}
+                {% set welcomewrap = 'welcomewrap' %}
+            {% endif %}
+
+            <div class="{{ welcomewrap }}">
+
+                {% if mfa_notification is defined and mfa_notification %}
+                    <h1>ATTENTION!</h1>
+                    <h3>Important Please Read.</h3>
+                {% else %}
+                    <h1>Welcome, {{ app.user.field('fname') ~ ' ' ~ app.user.field('lname') }}</h1>
+                {% endif %}
+
+                {% if terms_form is defined %}
+                    {% form_theme terms_form 'ARIMemberBundle:Form:terms_and_conditions.html.twig' %}
+
+                    <form action="" method="post" novalidate="novalidate" name="terms_form">
+                        <div class="info-forms-wrap">
+                            {{ form_widget(terms_form) }}
+
+                                {{ form_errors(terms_form) }}
+
+                                <div class="member-next-previews-wrap">
+                                    <button type="submit" style="float: right" class="continuebutton" onclick="terms_from.submit();"> </button>
+                                </div>
+                        </div>
+                    </form>
+                {% endif %}
+
+                {% if password_notification is defined and password_notification %}
+                    <form action="" method="post" novalidate="novalidate" name="password_notification">
+                        <div class="info-forms-wrap">
+                            <div class="pwrap">
+                                <p>The credit bureaus are now requiring all passwords be reset every 90 days.  You may update your password now otherwise we will request you update it in 90 days.</p>
+                            </div>
+                            <div class="member-next-previews-wrap">
+                                <a style="float: right" class="changepasswordbutton" href="{{ path('member_my_account')}}"> </a>
+                                <button type="submit" style="float: right" class="okbutton" onclick="password_notification.submit();" name="password_notification[ok]" value="1"> </button>
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+
+                {% if mfa_notification is defined and mfa_notification %}
+                    <form action="" method="post" novalidate="novalidate" name="mfa_form" id="mfa_form">
+                        <div class="info-forms-wrap">
+                            <div class="pwrap">
+                                <p>In order to further increase data security the credit bureaus are now requesting an additional level of identity verification for
+                                anyone accessing consumer credit data.  The identity verification process requires a code to be sent to your email or by text to
+                                your cell phone and then entered on the authentication page.  This process takes approximately 1-2 minutes to complete
+                                and will remain valid on the computer and browser you are currently using.  If you access {{ "TenantAlert"|trans }} from more than one device
+                                (home and work, for example) each device will need to be verified separately.</p>
+
+                                {% if force_mfa is not defined or not force_mfa %}
+                                    <p>As a convenience we are providing the option to skip verification today, however, verification must be completed no later than
+                                    October 31, 2014.  On November 1, 2014, verification must be completed in order to access new and existing reports.</p>
+                                {% else %}
+                                    <p>As of November 1, 2014, verification must be completed in order to access new and existing reports.</p>
+                                {% endif %}
+
+
+                                <p>We thank you in advance for your assistance in helping us keep all tenant screening data secure.  Should you have any questions
+                                please call {{ "phone.number"|trans }} or email customerservice@{{ "tenantalert.com"|trans }}.</p>
+
+                                <div class="ta_details">
+                                    {{ form_errors(mfa_form) }}
+                                    <ul>
+                                        <li>
+                                            {{ form_label(mfa_form.email) }}
+                                            {{ form_widget(mfa_form.email) }}
+                                        </li>
+                                        <li>
+                                            {{ form_label(mfa_form.phone) }}
+                                            {{ form_widget(mfa_form.phone) }}
+                                        </li>
+                                        <li class="preferences">
+                                            {{ form_label(mfa_form.mfa_preferences) }}
+                                            <div class="instactionsmarkwrap">
+                                                <ul>
+                                                    {% for preference in mfa_form.mfa_preferences %}
+                                                        <li>
+                                                            {{ form_widget(preference) }}{{ form_label(preference) }}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {{ form_rest(mfa_form) }}
+                            </div>
+                            <div class="member-next-previews-wrap" style="margin: 10px auto;width: 95%">
+                                <button type="submit" style="float: right" class="inline-continuebutton" onclick="mfa_form.submit();"></button>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% if force_mfa is not defined or not force_mfa %}
+                        <div>
+
+                            <form action="" method="post">
+                                <button type="submit" style="float: right" class="btn-link" name="mfa_notification[ok]" value="1">Skip the identity verification for now, I will complete the process prior to November 1, 2014.</button>
+                            </form>
+
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if app.user.getOldSystemLink() != '' %}
+                    <p><a href="{{ app.user.getOldSystemLink() }}">View prior reports not listed</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="wh_bottom">
+    </div>
+</div>
+{#</div>#}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/public/bundles/limelytecore/jquery/jquery.maskedinput-1.3.min.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+
+            function updateMasks(){
+              $(".txt-phone").mask("(999) 999-9999");
+            };
+
+            updateMasks();
+        });
+    </script>
+
+{% endblock %}
